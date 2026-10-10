@@ -41,11 +41,11 @@ jobs:
         run: npx expo prebuild --platform android --non-interactive
 
       - name: build release apk
-        timeout-minutes: 40
+        timeout-minutes: 50
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease -x lint --max-workers=2
+          ./gradlew assembleRelease -x lint --max-workers=2 -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=2g"
 
       - name: upload apk
         uses: actions/upload-artifact@v4
