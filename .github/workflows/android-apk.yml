@@ -1,0 +1,48 @@
+name: android-apk
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - name: install android packages
+        run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: install deps
+        run: npm ci --no-audit --no-fund
+
+      - name: stub google services (no push keys in CI)
+        run: |
+          cat > src/config/google-services.json <<'EOF'
+          {"client":[{"client_info":{"android_client_info":{"package_name":"com.abdullah.dokploymobile"},"mobilesdk_app_id":"1:000000000000:android:0000000000000000"},"oauth_client":[],"api_key":[{"current_key":"BUILD_STUB_NO_PUSH"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1","project_info":{"firebase_url":"","project_id":"dokploy-mobile-stub","project_number":"000000000000","storage_bucket":""}}
+          EOF
+
+      - name: prebuild android
+        run: npx expo prebuild --platform android --non-interactive
+
+      - name: build release apk
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease -x lint --max-workers=2
+
+      - name: upload apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: dokploy-mobile-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
