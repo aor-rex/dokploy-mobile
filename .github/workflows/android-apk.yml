@@ -20,9 +20,9 @@ jobs:
 
       - name: install android packages
         run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          yes | sdkmanager --licenses > /dev/null
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          SDM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | $SDM --licenses > /dev/null
+          $SDM "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: install deps
         run: npm ci --no-audit --no-fund
